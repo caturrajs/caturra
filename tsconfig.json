@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "strict": true,
+    "removeComments": true,
+    "sourceMap": true
+  },
+  "include": ["src/**/*"]
+}
