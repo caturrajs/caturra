@@ -6,7 +6,8 @@
     "noImplicitAny": true,
     "strict": true,
     "removeComments": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "allowSyntheticDefaultImports": true
   },
   "include": ["src/**/*"]
 }

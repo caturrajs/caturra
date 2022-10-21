@@ -170,4 +170,48 @@ describe("Snapshot", () => {
       },
     });
   });
+
+  it("sets values  from previous snapshot", () => {
+    interface ISnapshot {
+      a: string;
+      b: string;
+    }
+    const preivious = Snapshot<ISnapshot>({
+      a: "a0",
+      b: "b0",
+    });
+
+    const snapshot = Snapshot<ISnapshot>(
+      {
+        a: (args) => args.b + "a1",
+        b: "b1",
+      },
+      preivious
+    );
+
+    expect(snapshot).toEqual({
+      a: "b0a1",
+      b: "b1",
+    });
+  });
+
+  it("sets values reflexively from previous snapshot", () => {
+    interface ISnapshot {
+      a: number;
+    }
+    const preivious = Snapshot<ISnapshot>({
+      a: 0,
+    });
+
+    const snapshot = Snapshot<ISnapshot>(
+      {
+        a: ({ a }) => a + 1,
+      },
+      preivious
+    );
+
+    expect(snapshot).toEqual({
+      a: 1,
+    });
+  });
 });
