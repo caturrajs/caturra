@@ -3,12 +3,34 @@ import { TransformerTree } from "../types/TransformerTree";
 
 export const Snapshot = <T>(config: TransformerTree<T>, previous?: T) => {
   if (!previous) {
-    previous = {} as T;
-    Object.keys(config).forEach((key) => createSubNode(previous, key));
+    previous = createEmptyAbstractStateTree(config);
   }
+
   const ast = AbstractStateTree(config, previous, previous);
 
   return strip(ast);
+};
+
+const createEmptyAbstractStateTree = <T>(
+  config: TransformerTree<T>,
+  root: any = {},
+  node: any = root
+) => {
+  for (const key in config) {
+    const transformer = config[key];
+
+    if (typeof transformer === "object") {
+      node[key] = AbstractStateTree(
+        transformer as TransformerTree<any>,
+        root,
+        createSubNode(node, key)
+      );
+    } else {
+      node[key] = null;
+    }
+  }
+
+  return node as T;
 };
 
 const AbstractStateTree = <T>(
@@ -29,6 +51,7 @@ const AbstractStateTree = <T>(
       node[key] = transformer({
         ...strip(deepClone(root)),
         $parent: node,
+        $self: node[key],
       });
     } else {
       node[key] = transformer;
@@ -49,9 +72,9 @@ const createSubNode = (parent: any, key: keyof typeof parent) => {
 };
 
 const strip = (obj: any) => {
-  if (typeof obj !== "object") return;
+  if (typeof obj !== "object" || !obj) return;
 
-  delete obj.$parent;
+  if ("$parent" in obj) delete obj.$parent;
 
   Object.values(obj).forEach((sub) => strip(sub));
 

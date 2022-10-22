@@ -214,4 +214,24 @@ describe("Snapshot", () => {
       a: 1,
     });
   });
+
+  it("sets values reflexively from previous snapshot using $self", () => {
+    interface ISnapshot {
+      a: number;
+    }
+    const preivious = Snapshot<ISnapshot>({
+      a: 0,
+    });
+
+    const snapshot = Snapshot<ISnapshot>(
+      {
+        a: ({ $self }) => $self + 1,
+      },
+      preivious
+    );
+
+    expect(snapshot).toEqual({
+      a: 1,
+    });
+  });
 });

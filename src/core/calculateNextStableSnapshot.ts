@@ -3,8 +3,8 @@ import { TransformerTree } from "../types/TransformerTree";
 import { deepClone } from "../utils";
 
 export const calculateNextStableSnapshot = <T>(
-  start: T,
-  config: TransformerTree<T>
+  config: TransformerTree<T>,
+  start: T
 ) => {
   let a = start,
     b = Snapshot(config, start);
