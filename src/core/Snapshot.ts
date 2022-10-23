@@ -63,6 +63,7 @@ const AbstractStateTree = <T>(
 
 const createSubNode = (parent: any, key: keyof typeof parent) => {
   const sub = {
+    ...parent[key],
     $parent: parent,
   };
 

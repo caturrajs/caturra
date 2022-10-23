@@ -1,15 +1,25 @@
+import { Primitive } from "../types/utils";
 import { calculateNextStableSnapshot } from "./calculateNextStableSnapshot";
 import { Snapshot } from "./Snapshot";
 import { TransformerTree } from "../types/TransformerTree";
 import { deepClone } from "../utils";
-type Subscriber<T> = (update: T) => void;
+import { RemovePrimitiveProperties } from "../types/RemovePrimitiveProperties";
+import { CollapseObject } from "../types/CollapseObject";
+
+export type Subscriber<T> = (update: Readonly<T>) => void;
 
 interface State<T> {
-  getState: () => T;
-  subscribe: (fn: Subscriber<Readonly<T>>) => void;
-  unsubscribe: (fn: Subscriber<Readonly<T>>) => void;
+  getSnapshot: () => T;
+  subscribe: (fn: Subscriber<T>) => void;
+  unsubscribe: (fn: Subscriber<T>) => void;
   mutate: (fn: (data: T) => void) => void;
+  getSubState: SubStateGetter<T>;
 }
+
+export type SubStateGetter<T> = CollapseObject<{
+  [Key in keyof RemovePrimitiveProperties<T>]: (key: Key) => State<T[Key]>;
+}>;
+
 export const State = <T>(config: TransformerTree<T>): State<T> => {
   let subscribers: Subscriber<T>[] = [];
   let state = Snapshot<T>(config);
@@ -21,7 +31,7 @@ export const State = <T>(config: TransformerTree<T>): State<T> => {
     unsubscribe(fn) {
       subscribers = subscribers.filter((sub) => sub !== fn);
     },
-    getState() {
+    getSnapshot() {
       return state;
     },
     mutate(fn) {
@@ -29,7 +39,29 @@ export const State = <T>(config: TransformerTree<T>): State<T> => {
       fn(out);
       state = calculateNextStableSnapshot(config, out);
 
-      subscribers.forEach((sub) => sub(state));
+      subscribers.forEach((subscriber) => subscriber(state));
+    },
+    getSubState(key) {
+      const substate = State<T[typeof key]>(config[key] as any);
+
+      const updateSubState: Subscriber<any> = (state) => {
+        substate.mutate((substate) => {
+          for (const k in substate) {
+            substate[k] = state[key][k];
+          }
+        });
+      };
+
+      substate.subscribe((substate) => {
+        state[key] = substate;
+        subscribers
+          .filter((subscriber) => subscriber !== updateSubState)
+          .forEach((subscriber) => subscriber(state));
+      });
+
+      this.subscribe(updateSubState);
+
+      return substate;
     },
   };
 };
