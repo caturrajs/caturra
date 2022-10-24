@@ -1,12 +1,12 @@
 import { describe, it, expect, vi } from "vitest";
-import { State } from "./State";
+import { createState } from "./State";
 
 describe("State", () => {
   interface MinimalState {
     a: string;
   }
   it("returns the initial state", () => {
-    const state = State<MinimalState>({
+    const state = createState<MinimalState>({
       a: "a",
     });
 
@@ -16,7 +16,7 @@ describe("State", () => {
   });
 
   it("mutates state", () => {
-    const state = State<MinimalState>({
+    const state = createState<MinimalState>({
       a: ({ a }) => (a ? a : ""),
     });
 
@@ -30,7 +30,7 @@ describe("State", () => {
   });
 
   it("keeps constant values when mutating", () => {
-    const state = State<MinimalState>({
+    const state = createState<MinimalState>({
       a: "a",
     });
 
@@ -44,7 +44,7 @@ describe("State", () => {
   });
 
   it("transforms after mutate", () => {
-    const state = State<MinimalState>({
+    const state = createState<MinimalState>({
       a: ({ a }) => (a ? a[0] : ""),
     });
 
@@ -59,7 +59,7 @@ describe("State", () => {
 
   it("updates subscriber once when values change", () => {
     const fn = vi.fn();
-    const state = State<MinimalState>({
+    const state = createState<MinimalState>({
       a: ({ a }) => a ?? "",
     });
 
@@ -74,7 +74,7 @@ describe("State", () => {
 
   it("updates subscriber with the new state", () => {
     const fn = vi.fn();
-    const state = State<MinimalState>({
+    const state = createState<MinimalState>({
       a: ({ a }) => a ?? "",
     });
 
@@ -92,7 +92,7 @@ describe("State", () => {
   it("updates multiple subscribers", () => {
     const fn1 = vi.fn();
     const fn2 = vi.fn();
-    const state = State<MinimalState>({
+    const state = createState<MinimalState>({
       a: ({ a }) => a ?? "",
     });
 
@@ -109,7 +109,7 @@ describe("State", () => {
 
   it("stops updating after unsubscribing", () => {
     const fn = vi.fn();
-    const state = State<MinimalState>({
+    const state = createState<MinimalState>({
       a: ({ a }) => a ?? "",
     });
 
@@ -136,7 +136,7 @@ describe("state.getSubState", () => {
   }
 
   it("returns a new object with the correct methods", () => {
-    const state = State<NestedState>({
+    const state = createState<NestedState>({
       secondLevel: {
         thirdLevel: {
           third: 0,
@@ -146,75 +146,75 @@ describe("state.getSubState", () => {
       first: 0,
     });
 
-    const substate = state.getSubState("secondLevel");
+    const subState = state.getSubState("secondLevel");
 
-    expect(typeof substate).toBe("object");
-    expect(substate.getSnapshot).toBeDefined();
-    expect(substate.mutate).toBeDefined();
-    expect(substate.subscribe).toBeDefined();
-    expect(substate.unsubscribe).toBeDefined();
+    expect(typeof subState).toBe("object");
+    expect(subState.getSnapshot).toBeDefined();
+    expect(subState.mutate).toBeDefined();
+    expect(subState.subscribe).toBeDefined();
+    expect(subState.unsubscribe).toBeDefined();
   });
 
   it("returns a new state that is updated on changes in the root state", () => {
-    const state = State<NestedState>({
+    const state = createState<NestedState>({
       secondLevel: {
         thirdLevel: {
-          third: ({ $self }) => $self ?? 0,
+          third: ({ $this }) => $this ?? 0,
         },
-        second: ({ $self }) => $self ?? 0,
+        second: ({ $this }) => $this ?? 0,
       },
-      first: ({ $self }) => $self ?? 0,
+      first: ({ $this }) => $this ?? 0,
     });
 
-    const substate = state.getSubState("secondLevel");
+    const subState = state.getSubState("secondLevel");
 
     state.mutate((state) => {
       state.secondLevel.second = 123;
     });
 
-    expect(substate.getSnapshot()).toEqual(state.getSnapshot().secondLevel);
-    expect(substate.getSnapshot().second).toBe(123);
+    expect(subState.getSnapshot()).toEqual(state.getSnapshot().secondLevel);
+    expect(subState.getSnapshot().second).toBe(123);
   });
 
   it("returns a new state that syncs changes to the root state", () => {
-    const state = State<NestedState>({
+    const state = createState<NestedState>({
       secondLevel: {
         thirdLevel: {
-          third: ({ $self }) => $self ?? 0,
+          third: ({ $this }) => $this ?? 0,
         },
-        second: ({ $self }) => $self ?? 0,
+        second: ({ $this }) => $this ?? 0,
       },
-      first: ({ $self }) => $self ?? 0,
+      first: ({ $this }) => $this ?? 0,
     });
 
-    const substate = state.getSubState("secondLevel");
+    const subState = state.getSubState("secondLevel");
 
-    substate.mutate((state) => {
+    subState.mutate((state) => {
       state.second = 123;
     });
 
-    expect(substate.getSnapshot()).toEqual(state.getSnapshot().secondLevel);
+    expect(subState.getSnapshot()).toEqual(state.getSnapshot().secondLevel);
     expect(state.getSnapshot().secondLevel.second).toBe(123);
   });
 
   it("can be chained to access deeply nested properties", () => {
-    const state = State<NestedState>({
+    const state = createState<NestedState>({
       secondLevel: {
         thirdLevel: {
-          third: ({ $self }) => $self ?? 0,
+          third: ({ $this }) => $this ?? 0,
         },
-        second: ({ $self }) => $self ?? 0,
+        second: ({ $this }) => $this ?? 0,
       },
-      first: ({ $self }) => $self ?? 0,
+      first: ({ $this }) => $this ?? 0,
     });
 
-    const substate = state.getSubState("secondLevel").getSubState("thirdLevel");
+    const subState = state.getSubState("secondLevel").getSubState("thirdLevel");
 
-    substate.mutate((state) => {
+    subState.mutate((state) => {
       state.third = 123;
     });
 
-    expect(substate.getSnapshot()).toEqual(
+    expect(subState.getSnapshot()).toEqual(
       state.getSnapshot().secondLevel.thirdLevel
     );
     expect(state.getSnapshot().secondLevel.thirdLevel.third).toBe(123);
@@ -223,9 +223,9 @@ describe("state.getSubState", () => {
       state.secondLevel.thirdLevel.third = 1;
     });
 
-    expect(substate.getSnapshot()).toEqual(
+    expect(subState.getSnapshot()).toEqual(
       state.getSnapshot().secondLevel.thirdLevel
     );
-    expect(substate.getSnapshot().third).toBe(1);
+    expect(subState.getSnapshot().third).toBe(1);
   });
 });

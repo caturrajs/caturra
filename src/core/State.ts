@@ -1,6 +1,6 @@
 import { Primitive } from "../types/utils";
 import { calculateNextStableSnapshot } from "./calculateNextStableSnapshot";
-import { Snapshot } from "./Snapshot";
+import { createSnapshot } from "./Snapshot";
 import { TransformerTree } from "../types/TransformerTree";
 import { deepClone } from "../utils";
 import { RemovePrimitiveProperties } from "../types/RemovePrimitiveProperties";
@@ -20,9 +20,9 @@ export type SubStateGetter<T> = CollapseObject<{
   [Key in keyof RemovePrimitiveProperties<T>]: (key: Key) => State<T[Key]>;
 }>;
 
-export const State = <T>(config: TransformerTree<T>): State<T> => {
+export const createState = <T>(config: TransformerTree<T>): State<T> => {
   let subscribers: Subscriber<T>[] = [];
-  let state = Snapshot<T>(config);
+  let state = createSnapshot<T>(config);
 
   return {
     subscribe(fn) {
@@ -42,18 +42,18 @@ export const State = <T>(config: TransformerTree<T>): State<T> => {
       subscribers.forEach((subscriber) => subscriber(state));
     },
     getSubState(key) {
-      const substate = State<T[typeof key]>(config[key] as any);
+      const subState = createState<T[typeof key]>(config[key] as any);
 
       const updateSubState: Subscriber<any> = (state) => {
-        substate.mutate((substate) => {
-          for (const k in substate) {
-            substate[k] = state[key][k];
+        subState.mutate((subState) => {
+          for (const k in subState) {
+            subState[k] = state[key][k];
           }
         });
       };
 
-      substate.subscribe((substate) => {
-        state[key] = substate;
+      subState.subscribe((subState) => {
+        state[key] = subState;
         subscribers
           .filter((subscriber) => subscriber !== updateSubState)
           .forEach((subscriber) => subscriber(state));
@@ -61,7 +61,7 @@ export const State = <T>(config: TransformerTree<T>): State<T> => {
 
       this.subscribe(updateSubState);
 
-      return substate;
+      return subState;
     },
   };
 };

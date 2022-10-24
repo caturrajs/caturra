@@ -1,10 +1,10 @@
-import { Snapshot } from "./Snapshot";
+import { createSnapshot } from "./Snapshot";
 import { it, describe, expect } from "vitest";
 import { Transformer } from "../types/Transformer";
 
 describe("Snapshot", () => {
   it("sets values with a function", () => {
-    const snapshot = Snapshot<{ a: string }>({
+    const snapshot = createSnapshot<{ a: string }>({
       a: () => "",
     });
 
@@ -12,7 +12,7 @@ describe("Snapshot", () => {
   });
 
   it("sets values directly", () => {
-    const snapshot = Snapshot<{ a: string }>({
+    const snapshot = createSnapshot<{ a: string }>({
       a: "",
     });
 
@@ -20,7 +20,7 @@ describe("Snapshot", () => {
   });
 
   it("sets values from other properties", () => {
-    const snapshot = Snapshot<{ a: string; b: string }>({
+    const snapshot = createSnapshot<{ a: string; b: string }>({
       a: "a",
       b: ({ a }) => a + "b",
     });
@@ -29,7 +29,7 @@ describe("Snapshot", () => {
   });
 
   it("sets values from other properties using relative access", () => {
-    const snapshot = Snapshot<{ a: string; b: string }>({
+    const snapshot = createSnapshot<{ a: string; b: string }>({
       a: "a",
       b: ({ $parent }) => $parent.a + "b",
     });
@@ -38,7 +38,7 @@ describe("Snapshot", () => {
   });
 
   it("sets values in nested objects", () => {
-    const snapshot = Snapshot<{ a: { b: "" } }>({
+    const snapshot = createSnapshot<{ a: { b: "" } }>({
       a: {
         b: "",
       },
@@ -56,7 +56,7 @@ describe("Snapshot", () => {
         d: string;
       };
     }
-    const snapshot = Snapshot<ISnapshot>({
+    const snapshot = createSnapshot<ISnapshot>({
       a: {
         b: "a.b",
       },
@@ -84,7 +84,7 @@ describe("Snapshot", () => {
         d: string;
       };
     }
-    const snapshot = Snapshot<ISnapshot>({
+    const snapshot = createSnapshot<ISnapshot>({
       a: {
         b: "a.b",
       },
@@ -116,7 +116,7 @@ describe("Snapshot", () => {
         };
       };
     }
-    const snapshot = Snapshot<ISnapshot>({
+    const snapshot = createSnapshot<ISnapshot>({
       a: {
         b: {
           c: "a.b.c",
@@ -152,7 +152,7 @@ describe("Snapshot", () => {
         };
       };
     }
-    const snapshot = Snapshot<ISnapshot>({
+    const snapshot = createSnapshot<ISnapshot>({
       a: {
         b: {
           c: "a.b.c",
@@ -176,12 +176,12 @@ describe("Snapshot", () => {
       a: string;
       b: string;
     }
-    const previous = Snapshot<ISnapshot>({
+    const previous = createSnapshot<ISnapshot>({
       a: "a0",
       b: "b0",
     });
 
-    const snapshot = Snapshot<ISnapshot>(
+    const snapshot = createSnapshot<ISnapshot>(
       {
         a: (args) => args.b + "a1",
         b: "b1",
@@ -199,11 +199,11 @@ describe("Snapshot", () => {
     interface ISnapshot {
       a: number;
     }
-    const previous = Snapshot<ISnapshot>({
+    const previous = createSnapshot<ISnapshot>({
       a: 0,
     });
 
-    const snapshot = Snapshot<ISnapshot>(
+    const snapshot = createSnapshot<ISnapshot>(
       {
         a: ({ a }) => a + 1,
       },
@@ -215,17 +215,17 @@ describe("Snapshot", () => {
     });
   });
 
-  it("sets values reflexively from previous snapshot using $self", () => {
+  it("sets values reflexively from previous snapshot using $this", () => {
     interface ISnapshot {
       a: number;
     }
-    const previous = Snapshot<ISnapshot>({
+    const previous = createSnapshot<ISnapshot>({
       a: 0,
     });
 
-    const snapshot = Snapshot<ISnapshot>(
+    const snapshot = createSnapshot<ISnapshot>(
       {
-        a: ({ $self }) => $self + 1,
+        a: ({ $this }) => $this + 1,
       },
       previous
     );
@@ -242,15 +242,15 @@ describe("Snapshot", () => {
 
     const init =
       <T>(init: T): Transformer<any, any, T> =>
-      ({ $self }) =>
-        $self ?? init;
+      ({ $this }) =>
+        $this ?? init;
 
     const min =
       <T>(min: T): Transformer<any, any, T> =>
-      ({ $self }) =>
-        $self < min ? min : $self;
+      ({ $this }) =>
+        $this < min ? min : $this;
 
-    const snapshot = Snapshot<ISnapshot>({
+    const snapshot = createSnapshot<ISnapshot>({
       a: [init(0), min(5)],
     });
 
@@ -262,7 +262,7 @@ describe("Snapshot", () => {
       a: number;
     }
 
-    const snapshot = Snapshot<ISnapshot>({
+    const snapshot = createSnapshot<ISnapshot>({
       a: [() => 10, ({ a }) => (a < 5 ? 5 : a)],
     });
 

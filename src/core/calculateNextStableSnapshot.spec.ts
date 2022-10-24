@@ -1,4 +1,4 @@
-import { Snapshot } from "./Snapshot";
+import { createSnapshot } from "./Snapshot";
 import { calculateNextStableSnapshot } from "./calculateNextStableSnapshot";
 import { describe, it, expect } from "vitest";
 
@@ -8,7 +8,7 @@ describe("State", () => {
       a: string;
       b: string;
     }
-    const start = Snapshot<IState>({ a: "", b: "" });
+    const start = createSnapshot<IState>({ a: "", b: "" });
     const state = calculateNextStableSnapshot<IState>(
       {
         a: "",
@@ -24,7 +24,7 @@ describe("State", () => {
     interface IState {
       a: number;
     }
-    const start = Snapshot<IState>({ a: 0 });
+    const start = createSnapshot<IState>({ a: 0 });
     const state = calculateNextStableSnapshot<IState>(
       {
         a: ({ a }) => (a < 5 ? a + 1 : a),
@@ -40,7 +40,7 @@ describe("State", () => {
       a: number;
       b: number;
     }
-    const start = Snapshot<IState>({ a: 0, b: 0 });
+    const start = createSnapshot<IState>({ a: 0, b: 0 });
     const state = calculateNextStableSnapshot<IState>(
       {
         a: ({ b }) => b,
@@ -56,7 +56,7 @@ describe("State", () => {
     interface IState {
       a: number;
     }
-    const start = Snapshot<IState>({ a: 0 });
+    const start = createSnapshot<IState>({ a: 0 });
 
     const t = () => {
       const state = calculateNextStableSnapshot<IState>(

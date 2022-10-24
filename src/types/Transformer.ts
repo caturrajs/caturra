@@ -5,6 +5,6 @@ export type Transformer<Root, Path extends (string | symbol | number)[], V> =
   | ((
       arg: Root &
         TransformerNode<Root, Path> & {
-          $self: V;
+          $this: V;
         }
     ) => V);
