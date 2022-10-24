@@ -7,6 +7,8 @@ export type TransformerTree<
   Path extends (string | number | symbol)[] = []
 > = {
   [key in keyof C]: C[key] extends Primitive
-    ? Transformer<Root, [...Path, key], C[key]>
+    ?
+        | Transformer<Root, [...Path, key], C[key]>
+        | Transformer<Root, [...Path, key], C[key]>[]
     : TransformerTree<C[key], Root, [...Path, key]>;
 };

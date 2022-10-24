@@ -1,6 +1,6 @@
-import { idText } from "typescript";
 import { Snapshot } from "./Snapshot";
 import { it, describe, expect } from "vitest";
+import { Transformer } from "../types/Transformer";
 
 describe("Snapshot", () => {
   it("sets values with a function", () => {
@@ -176,7 +176,7 @@ describe("Snapshot", () => {
       a: string;
       b: string;
     }
-    const preivious = Snapshot<ISnapshot>({
+    const previous = Snapshot<ISnapshot>({
       a: "a0",
       b: "b0",
     });
@@ -186,7 +186,7 @@ describe("Snapshot", () => {
         a: (args) => args.b + "a1",
         b: "b1",
       },
-      preivious
+      previous
     );
 
     expect(snapshot).toEqual({
@@ -199,7 +199,7 @@ describe("Snapshot", () => {
     interface ISnapshot {
       a: number;
     }
-    const preivious = Snapshot<ISnapshot>({
+    const previous = Snapshot<ISnapshot>({
       a: 0,
     });
 
@@ -207,7 +207,7 @@ describe("Snapshot", () => {
       {
         a: ({ a }) => a + 1,
       },
-      preivious
+      previous
     );
 
     expect(snapshot).toEqual({
@@ -219,7 +219,7 @@ describe("Snapshot", () => {
     interface ISnapshot {
       a: number;
     }
-    const preivious = Snapshot<ISnapshot>({
+    const previous = Snapshot<ISnapshot>({
       a: 0,
     });
 
@@ -227,11 +227,45 @@ describe("Snapshot", () => {
       {
         a: ({ $self }) => $self + 1,
       },
-      preivious
+      previous
     );
 
     expect(snapshot).toEqual({
       a: 1,
     });
+  });
+
+  it("allows multiple transformers", () => {
+    interface ISnapshot {
+      a: number;
+    }
+
+    const init =
+      <T>(init: T): Transformer<any, any, T> =>
+      ({ $self }) =>
+        $self ?? init;
+
+    const min =
+      <T>(min: T): Transformer<any, any, T> =>
+      ({ $self }) =>
+        $self < min ? min : $self;
+
+    const snapshot = Snapshot<ISnapshot>({
+      a: [init(0), min(5)],
+    });
+
+    expect(snapshot.a).toBe(5);
+  });
+
+  it("multiple transformers update node tree between each transformer", () => {
+    interface ISnapshot {
+      a: number;
+    }
+
+    const snapshot = Snapshot<ISnapshot>({
+      a: [() => 10, ({ a }) => (a < 5 ? 5 : a)],
+    });
+
+    expect(snapshot.a).toBe(10);
   });
 });

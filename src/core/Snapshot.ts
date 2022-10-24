@@ -19,7 +19,7 @@ const createEmptyAbstractStateTree = <T>(
   for (const key in config) {
     const transformer = config[key];
 
-    if (typeof transformer === "object") {
+    if (typeof transformer === "object" && !Array.isArray(transformer)) {
       node[key] = AbstractStateTree(
         transformer as TransformerTree<any>,
         root,
@@ -41,7 +41,16 @@ const AbstractStateTree = <T>(
   for (const key in config) {
     const transformer = config[key];
 
-    if (typeof transformer === "object") {
+    if (Array.isArray(transformer)) {
+      let i = 0;
+      for (let t of transformer) {
+        node[key] = t({
+          ...strip(deepClone(root)),
+          $parent: node,
+          $self: node[key],
+        });
+      }
+    } else if (typeof transformer === "object") {
       node[key] = AbstractStateTree(
         transformer as TransformerTree<any>,
         root,
