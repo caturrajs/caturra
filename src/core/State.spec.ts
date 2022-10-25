@@ -122,6 +122,52 @@ describe("State", () => {
 
     expect(fn).toBeCalledTimes(0);
   });
+
+  it("allows setting fields from null values", () => {
+    const state = createState<MinimalState>({
+      a: ({ a }) => a ?? null,
+    });
+
+    state.mutate((state) => {
+      state.a = "set a";
+    });
+
+    expect(state.getSnapshot()).toEqual({ a: "set a" });
+  });
+
+  it("syncs two fields in the direction they are defined", () => {
+    interface State {
+      a: string;
+      b: string;
+    }
+    const state = createState<State>({
+      a: ({ b }) => b,
+      b: ({ a }) => a,
+    });
+
+    state.mutate((state) => {
+      state.a = "set a";
+    });
+
+    expect(state.getSnapshot()).toEqual({ a: "set a", b: "set a" });
+  });
+
+  it("syncs two fields in the opposite direction to how they are defined", () => {
+    interface IState {
+      a: string;
+      b: string;
+    }
+    const state = createState<IState>({
+      a: ({ b }) => b,
+      b: ({ a }) => a,
+    });
+
+    state.mutate((state) => {
+      state.b = "set b";
+    });
+
+    expect(state.getSnapshot()).toEqual({ a: "set b", b: "set b" });
+  });
 });
 
 describe("state.getSubState", () => {

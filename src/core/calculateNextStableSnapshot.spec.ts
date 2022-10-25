@@ -9,13 +9,13 @@ describe("State", () => {
       b: string;
     }
     const start = createSnapshot<IState>({ a: "", b: "" });
-    const state = calculateNextStableSnapshot<IState>(
-      {
+    const state = calculateNextStableSnapshot<IState>({
+      config: {
         a: "",
         b: "",
       },
-      start
-    );
+      initialValue: start,
+    });
 
     expect(state).toEqual({ a: "", b: "" });
   });
@@ -25,12 +25,12 @@ describe("State", () => {
       a: number;
     }
     const start = createSnapshot<IState>({ a: 0 });
-    const state = calculateNextStableSnapshot<IState>(
-      {
+    const state = calculateNextStableSnapshot<IState>({
+      config: {
         a: ({ a }) => (a < 5 ? a + 1 : a),
       },
-      start
-    );
+      initialValue: start,
+    });
 
     expect(state).toEqual({ a: 5 });
   });
@@ -41,13 +41,13 @@ describe("State", () => {
       b: number;
     }
     const start = createSnapshot<IState>({ a: 0, b: 0 });
-    const state = calculateNextStableSnapshot<IState>(
-      {
+    const state = calculateNextStableSnapshot<IState>({
+      config: {
         a: ({ b }) => b,
         b: ({ a }) => (a < 5 ? a + 1 : a),
       },
-      start
-    );
+      initialValue: start,
+    });
 
     expect(state).toEqual({ a: 5, b: 5 });
   });
@@ -59,12 +59,12 @@ describe("State", () => {
     const start = createSnapshot<IState>({ a: 0 });
 
     const t = () => {
-      const state = calculateNextStableSnapshot<IState>(
-        {
+      calculateNextStableSnapshot<IState>({
+        config: {
           a: ({ a }) => a + 1,
         },
-        start
-      );
+        initialValue: start,
+      });
     };
 
     expect(t).toThrow();

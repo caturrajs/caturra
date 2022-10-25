@@ -2,12 +2,17 @@ import { createSnapshot } from "./Snapshot";
 import { TransformerTree } from "../types/TransformerTree";
 import { deepClone } from "../utils";
 
-export const calculateNextStableSnapshot = <T>(
-  config: TransformerTree<T>,
-  start: T
-) => {
-  let a = start,
-    b = createSnapshot(config, start);
+export const calculateNextStableSnapshot = <T>({
+  config,
+  firstRunConfig,
+  initialValue,
+}: {
+  config: TransformerTree<T>;
+  firstRunConfig?: TransformerTree<T>;
+  initialValue: T;
+}) => {
+  let a = initialValue,
+    b = createSnapshot(firstRunConfig ?? config, initialValue);
 
   let counter = 0;
   do {

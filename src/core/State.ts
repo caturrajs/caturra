@@ -5,6 +5,7 @@ import { TransformerTree } from "../types/TransformerTree";
 import { deepClone } from "../utils";
 import { RemovePrimitiveProperties } from "../types/RemovePrimitiveProperties";
 import { CollapseObject } from "../types/CollapseObject";
+import { freezeLatestChanges } from "./freezeLatestChanges";
 
 export type Subscriber<T> = (update: Readonly<T>) => void;
 
@@ -37,7 +38,16 @@ export const createState = <T>(config: TransformerTree<T>): State<T> => {
     mutate(fn) {
       const out = deepClone(state);
       fn(out);
-      state = calculateNextStableSnapshot(config, out);
+      const configWithFrozenUserChanges = freezeLatestChanges({
+        before: state,
+        after: out,
+        config,
+      });
+      state = calculateNextStableSnapshot({
+        config,
+        firstRunConfig: configWithFrozenUserChanges,
+        initialValue: out,
+      });
 
       subscribers.forEach((subscriber) => subscriber(state));
     },
