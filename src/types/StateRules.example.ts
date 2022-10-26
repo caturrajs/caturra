@@ -1,4 +1,4 @@
-import { TransformerTree } from "./TransformerTree";
+import { StateRules } from "./StateRules";
 
 interface Config {
   a: {
@@ -12,7 +12,7 @@ interface Config {
   };
 }
 
-const t: TransformerTree<Config> = {
+const t: StateRules<Config> = {
   a: {
     b: ({ c, $parent }) => c.d.f.toString() + $parent.$parent.c.d.f,
   },

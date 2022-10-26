@@ -1,7 +1,7 @@
 import { deepClone } from "../utils";
-import { TransformerTree } from "../types/TransformerTree";
+import { StateRules } from "../types/StateRules";
 
-export const createSnapshot = <T>(config: TransformerTree<T>, previous?: T) => {
+export const createSnapshot = <T>(config: StateRules<T>, previous?: T) => {
   if (!previous) {
     previous = createEmptyAbstractStateTree(config);
   }
@@ -12,7 +12,7 @@ export const createSnapshot = <T>(config: TransformerTree<T>, previous?: T) => {
 };
 
 const createEmptyAbstractStateTree = <T>(
-  config: TransformerTree<T>,
+  config: StateRules<T>,
   root: any = {},
   node: any = root
 ) => {
@@ -21,7 +21,7 @@ const createEmptyAbstractStateTree = <T>(
 
     if (typeof transformer === "object" && !Array.isArray(transformer)) {
       node[key] = createAbstractStateTree(
-        transformer as TransformerTree<any>,
+        transformer as StateRules<any>,
         root,
         createSubNode(node, key)
       );
@@ -34,7 +34,7 @@ const createEmptyAbstractStateTree = <T>(
 };
 
 const createAbstractStateTree = <T>(
-  config: TransformerTree<T>,
+  config: StateRules<T>,
   root: any,
   node: any
 ) => {
@@ -47,12 +47,12 @@ const createAbstractStateTree = <T>(
         node[key] = t({
           ...strip(deepClone(root)),
           $parent: node,
-          $this: node[key],
+          $it: node[key],
         });
       }
     } else if (typeof transformer === "object") {
       node[key] = createAbstractStateTree(
-        transformer as TransformerTree<any>,
+        transformer as StateRules<any>,
         root,
         createSubNode(node, key)
       );
@@ -60,7 +60,7 @@ const createAbstractStateTree = <T>(
       node[key] = transformer({
         ...strip(deepClone(root)),
         $parent: node,
-        $this: node[key],
+        $it: node[key],
       });
     } else {
       node[key] = transformer;

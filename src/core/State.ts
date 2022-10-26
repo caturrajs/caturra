@@ -1,7 +1,7 @@
 import { Primitive } from "../types/utils";
 import { calculateNextStableSnapshot } from "./calculateNextStableSnapshot";
 import { createSnapshot } from "./Snapshot";
-import { TransformerTree } from "../types/TransformerTree";
+import { StateRules } from "../types/StateRules";
 import { deepClone } from "../utils";
 import { RemovePrimitiveProperties } from "../types/RemovePrimitiveProperties";
 import { CollapseObject } from "../types/CollapseObject";
@@ -21,7 +21,7 @@ export type SubStateGetter<T> = CollapseObject<{
   [Key in keyof RemovePrimitiveProperties<T>]: (key: Key) => State<T[Key]>;
 }>;
 
-export const createState = <T>(config: TransformerTree<T>): State<T> => {
+export const createState = <T>(config: StateRules<T>): State<T> => {
   let subscribers: Subscriber<T>[] = [];
   let state = createSnapshot<T>(config);
 

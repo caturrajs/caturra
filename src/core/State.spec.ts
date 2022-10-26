@@ -1,3 +1,4 @@
+import { StateRule } from "../types/StateRule";
 import { describe, it, expect, vi } from "vitest";
 import { createState } from "./State";
 
@@ -168,6 +169,37 @@ describe("State", () => {
 
     expect(state.getSnapshot()).toEqual({ a: "set b", b: "set b" });
   });
+
+  it("keeps transformers clojure", () => {
+    interface IState {
+      a: string;
+      b: number;
+    }
+    const countChangesInA = (): StateRule<number, IState, ["b"]> => {
+      let updates = 0;
+      let prev: string | undefined = undefined;
+
+      return ({ a }) => {
+        if (a !== prev) updates++;
+        prev = a;
+        return updates;
+      };
+    };
+
+    const state = createState<IState>({
+      a: ({ $it }) => $it ?? "default",
+      b: countChangesInA(),
+    });
+
+    state.mutate((state) => {
+      state.a = "default";
+    });
+    state.mutate((state) => {
+      state.a = "";
+    });
+
+    expect(state.getSnapshot()).toEqual({ a: "", b: 2 });
+  });
 });
 
 describe("state.getSubState", () => {
@@ -205,11 +237,11 @@ describe("state.getSubState", () => {
     const state = createState<NestedState>({
       secondLevel: {
         thirdLevel: {
-          third: ({ $this }) => $this ?? 0,
+          third: ({ $it }) => $it ?? 0,
         },
-        second: ({ $this }) => $this ?? 0,
+        second: ({ $it }) => $it ?? 0,
       },
-      first: ({ $this }) => $this ?? 0,
+      first: ({ $it }) => $it ?? 0,
     });
 
     const subState = state.getSubState("secondLevel");
@@ -226,11 +258,11 @@ describe("state.getSubState", () => {
     const state = createState<NestedState>({
       secondLevel: {
         thirdLevel: {
-          third: ({ $this }) => $this ?? 0,
+          third: ({ $it }) => $it ?? 0,
         },
-        second: ({ $this }) => $this ?? 0,
+        second: ({ $it }) => $it ?? 0,
       },
-      first: ({ $this }) => $this ?? 0,
+      first: ({ $it }) => $it ?? 0,
     });
 
     const subState = state.getSubState("secondLevel");
@@ -247,11 +279,11 @@ describe("state.getSubState", () => {
     const state = createState<NestedState>({
       secondLevel: {
         thirdLevel: {
-          third: ({ $this }) => $this ?? 0,
+          third: ({ $it }) => $it ?? 0,
         },
-        second: ({ $this }) => $this ?? 0,
+        second: ({ $it }) => $it ?? 0,
       },
-      first: ({ $this }) => $this ?? 0,
+      first: ({ $it }) => $it ?? 0,
     });
 
     const subState = state.getSubState("secondLevel").getSubState("thirdLevel");

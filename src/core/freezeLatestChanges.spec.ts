@@ -1,6 +1,6 @@
 import { freezeLatestChanges } from "./freezeLatestChanges";
 import { describe, it, expect } from "vitest";
-import { Transformer } from "../types/Transformer";
+import { StateRule } from "../types/StateRule";
 
 describe("freezeLatestChanges", () => {
   it("returns a config with static transformers where the property changed", () => {
@@ -20,7 +20,8 @@ describe("freezeLatestChanges", () => {
     interface MinimalState {
       a: number;
     }
-    const transformer: Transformer<any, any, number> = ({ a }) => a + 1;
+    const transformer: StateRule<number, MinimalState, ["a"]> = ({ a }) =>
+      a + 1;
     const out = freezeLatestChanges<MinimalState>({
       before: { a: 0 },
       after: { a: 0 },
@@ -38,7 +39,7 @@ describe("freezeLatestChanges", () => {
         };
       };
     }
-    const transformer: Transformer<any, any, number> = ({ a }) => a + 1;
+    const transformer: StateRule<number, RecursiveState> = ({ a }) => a.b.c + 1;
     const out = freezeLatestChanges<RecursiveState>({
       before: { a: { b: { c: 0 } } },
       after: { a: { b: { c: 1 } } },

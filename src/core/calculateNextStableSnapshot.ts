@@ -1,5 +1,5 @@
 import { createSnapshot } from "./Snapshot";
-import { TransformerTree } from "../types/TransformerTree";
+import { StateRules } from "../types/StateRules";
 import { deepClone } from "../utils";
 
 export const calculateNextStableSnapshot = <T>({
@@ -7,8 +7,8 @@ export const calculateNextStableSnapshot = <T>({
   firstRunConfig,
   initialValue,
 }: {
-  config: TransformerTree<T>;
-  firstRunConfig?: TransformerTree<T>;
+  config: StateRules<T>;
+  firstRunConfig?: StateRules<T>;
   initialValue: T;
 }) => {
   let a = initialValue,

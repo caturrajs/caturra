@@ -1,6 +1,6 @@
 import { createSnapshot } from "./Snapshot";
 import { it, describe, expect } from "vitest";
-import { Transformer } from "../types/Transformer";
+import { StateRule } from "../types/StateRule";
 
 describe("Snapshot", () => {
   it("sets values with a function", () => {
@@ -215,7 +215,7 @@ describe("Snapshot", () => {
     });
   });
 
-  it("sets values reflexively from previous snapshot using $this", () => {
+  it("sets values reflexively from previous snapshot using $it", () => {
     interface ISnapshot {
       a: number;
     }
@@ -225,7 +225,7 @@ describe("Snapshot", () => {
 
     const snapshot = createSnapshot<ISnapshot>(
       {
-        a: ({ $this }) => $this + 1,
+        a: ({ $it }) => $it + 1,
       },
       previous
     );
@@ -241,17 +241,17 @@ describe("Snapshot", () => {
     }
 
     const init =
-      <T>(init: T): Transformer<any, any, T> =>
-      ({ $this }) =>
-        $this ?? init;
+      <T>(init: T): StateRule<T> =>
+      ({ $it }) =>
+        $it ?? init;
 
     const min =
-      <T>(min: T): Transformer<any, any, T> =>
-      ({ $this }) =>
-        $this < min ? min : $this;
+      <T>(min: T): StateRule<T> =>
+      ({ $it }) =>
+        $it < min ? min : $it;
 
     const snapshot = createSnapshot<ISnapshot>({
-      a: [init(0), min(5)],
+      a: [init<number>(0), min<number>(5)],
     });
 
     expect(snapshot.a).toBe(5);

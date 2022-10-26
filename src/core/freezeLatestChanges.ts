@@ -1,9 +1,9 @@
-import { TransformerTree } from "../types/TransformerTree";
+import { StateRules } from "../types/StateRules";
 
 interface IFreezeLastChanges<T> {
   before: T;
   after: T;
-  config: TransformerTree<T>;
+  config: StateRules<T>;
 }
 /**
  * In order to enable bi-directional syncing of fields we have to freeze the
@@ -38,5 +38,5 @@ export const freezeLatestChanges = <T>({
     }
   }
 
-  return out as TransformerTree<T>;
+  return out as StateRules<T>;
 };
