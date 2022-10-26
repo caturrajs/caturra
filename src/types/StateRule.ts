@@ -12,3 +12,15 @@ export type StateRule<
           $it: V;
         }
     ) => V);
+
+export type RelativeStateRule<
+  V,
+  RelativeRoot,
+  Path extends (string | symbol | number)[] = [keyof RelativeRoot]
+> =
+  | V
+  | ((
+      arg: TransformerNode<RelativeRoot, Path> & {
+        $it: V;
+      }
+    ) => V);
