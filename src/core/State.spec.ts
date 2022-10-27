@@ -1,6 +1,7 @@
 import { StateRule } from "../types/StateRule";
 import { describe, it, expect, vi } from "vitest";
 import { createState } from "./State";
+import { n } from "vitest/dist/index-40e0cb97";
 
 describe("State", () => {
   interface MinimalState {
@@ -305,5 +306,46 @@ describe("state.getSubState", () => {
       state.getSnapshot().secondLevel.thirdLevel
     );
     expect(subState.getSnapshot().third).toBe(1);
+  });
+
+  it("can handle lots of sub states without RangeError", () => {
+    interface ComplexState {
+      one: {
+        two: {
+          a: number;
+        };
+        three: {
+          a: number;
+        };
+        four: {
+          a: number;
+        };
+      };
+    }
+    const state = createState<ComplexState>({
+      one: {
+        two: {
+          a: ({ $it }) => $it ?? 0,
+        },
+        three: {
+          a: ({ $it }) => $it ?? 0,
+        },
+        four: {
+          a: ({ $it }) => $it ?? 0,
+        },
+      },
+    });
+
+    for (let i = 0; i < 100; i++) {
+      state.getSubState("one").getSubState("two");
+      state.getSubState("one").getSubState("three");
+      state.getSubState("one").getSubState("four");
+    }
+
+    expect(() => {
+      state.mutate((data) => {
+        data.one.two.a = 100;
+      });
+    }).not.toThrow();
   });
 });

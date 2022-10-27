@@ -20,7 +20,7 @@ export const createState = <T>(config: StateRules<T>): State<T> => {
   let subscribers: Subscriber<T>[] = [];
   let state = createSnapshot<T>(config);
 
-  return {
+  const self: State<T> = {
     subscribe(fn) {
       subscribers.push(fn);
     },
@@ -47,28 +47,45 @@ export const createState = <T>(config: StateRules<T>): State<T> => {
       subscribers.forEach((subscriber) => subscriber(state));
     },
     getSubState(key) {
-      const subState = createState<T[typeof key]>(config[key] as any);
-
-      const updateSubState: Subscriber<any> = (state) => {
-        subState.mutate((subState) => {
-          for (const k in subState) {
-            subState[k] = state[key][k];
-          }
-        });
-      };
-
-      subState.subscribe((subState) => {
-        state[key] = subState;
-        subscribers
-          .filter((subscriber) => subscriber !== updateSubState)
-          .forEach((subscriber) => subscriber(state));
-      });
-
-      this.subscribe(updateSubState);
-
+      const subState = createSubState(config[key] as any, self, key);
       return subState as T[typeof key] extends Record<any, any>
         ? State<T[typeof key]>
         : never;
     },
   };
+  return self;
+};
+
+const createSubState = <T, K extends keyof T>(
+  config: StateRules<T[K]>,
+  superState: State<T>,
+  key: K
+): State<T[K]> => {
+  let subscribers: Subscriber<T[K]>[] = [];
+
+  superState.subscribe((snapshot) =>
+    subscribers.forEach((subscriber) => subscriber(snapshot[key]))
+  );
+
+  const self: State<T[K]> = {
+    subscribe(fn) {
+      subscribers.push(fn);
+    },
+    unsubscribe(fn) {
+      subscribers = subscribers.filter((sub) => sub !== fn);
+    },
+    getSnapshot() {
+      return superState.getSnapshot()[key];
+    },
+    mutate(fn) {
+      superState.mutate((data) => {
+        fn(data[key]);
+      });
+    },
+    getSubState(key) {
+      return createSubState(config[key] as any, self, key) as any;
+    },
+  };
+
+  return self;
 };
