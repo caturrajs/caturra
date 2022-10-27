@@ -1,10 +1,7 @@
-import { Primitive } from "../types/utils";
 import { calculateNextStableSnapshot } from "./calculateNextStableSnapshot";
 import { createSnapshot } from "./Snapshot";
 import { StateRules } from "../types/StateRules";
 import { deepClone } from "../utils";
-import { RemovePrimitiveProperties } from "../types/RemovePrimitiveProperties";
-import { CollapseObject } from "../types/CollapseObject";
 import { freezeLatestChanges } from "./freezeLatestChanges";
 
 export type Subscriber<T> = (update: Readonly<T>) => void;
@@ -14,12 +11,10 @@ interface State<T> {
   subscribe: (fn: Subscriber<T>) => void;
   unsubscribe: (fn: Subscriber<T>) => void;
   mutate: (fn: (data: T) => void) => void;
-  getSubState: SubStateGetter<T>;
+  getSubState: <K extends keyof T>(
+    key: K
+  ) => T[K] extends Record<any, any> ? State<T[K]> : never;
 }
-
-export type SubStateGetter<T> = CollapseObject<{
-  [Key in keyof RemovePrimitiveProperties<T>]: (key: Key) => State<T[Key]>;
-}>;
 
 export const createState = <T>(config: StateRules<T>): State<T> => {
   let subscribers: Subscriber<T>[] = [];
@@ -71,7 +66,9 @@ export const createState = <T>(config: StateRules<T>): State<T> => {
 
       this.subscribe(updateSubState);
 
-      return subState;
+      return subState as T[typeof key] extends Record<any, any>
+        ? State<T[typeof key]>
+        : never;
     },
   };
 };

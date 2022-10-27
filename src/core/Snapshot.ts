@@ -2,7 +2,7 @@ import { deepClone } from "../utils";
 import { StateRules } from "../types/StateRules";
 
 export const createSnapshot = <T>(config: StateRules<T>, previous?: T) => {
-  if (!previous) {
+  if (typeof previous === "undefined") {
     previous = createEmptyAbstractStateTree(config);
   }
 
@@ -20,7 +20,7 @@ const createEmptyAbstractStateTree = <T>(
     const transformer = config[key];
 
     if (typeof transformer === "object" && !Array.isArray(transformer)) {
-      node[key] = createAbstractStateTree(
+      node[key] = createEmptyAbstractStateTree(
         transformer as StateRules<any>,
         root,
         createSubNode(node, key)
